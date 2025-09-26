@@ -1,83 +1,785 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang='en'>
 <head>
-	<title>informatics.stmgss</title>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-  	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
-  	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-  	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
-	<style>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width,initial-scale=1' />
+    <title>informatics.stmgss</title>
+    <link rel='preconnect' href='https://fonts.googleapis.com'>
+    <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>
+    <link href='https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap' rel='stylesheet'>
+    <style>
+        /* ------------------ Theme variables ------------------ */
+        :root{
+        --bg:#f0f6f9;           /* page background */
+        --surface:#ffffff;      /* main card surface */
+        --surface-2:#f8fbfc;    /* subtle variant used for cards/nav */
+        --muted:#6b7280;
+        --accent1:#0ea5a4;      /* teal */
+        --accent2:#0369a1;      /* deep blue */
+        --link:var(--accent2);
+        --text:#0b1220;
+        --radius:12px;
+        --sidebar-w:280px;
+        --shadow:0 10px 30px rgba(2,6,23,0.06);
+        --card-border:rgba(2,6,23,0.04);
+        --card-grad-start:rgba(255,255,255,0.96);
+        --card-grad-end:rgba(246,251,255,0.96);
+        }
 
-	body {
-		font-family: 'Courier New', monospace;
-		font-weight: bold;
-		background-color: #88ebff;
-		margin: 0;
-	}
+        /* cool theme (default) */
+        html[data-theme='cool']{
+            --bg:#f0f6f9; --surface:#ffffff; --surface-2:#f8fbfc; --text:#0b1220; --muted:#6b7280; --accent1:#0ea5a4; --accent2:#0369a1; --link:var(--accent2);
+            --card-border:rgba(2,6,23,0.04);
+            --card-grad-start:rgba(255,255,255,0.96);
+            --card-grad-end:rgba(246,251,255,0.96);
+        }
 
-	.header {
-		padding: 10px;
-		text-align: center;
-		background: #00bffe;
-		color: white;
-	}
+        /* dark theme — ALL surface / card colors adapt so "tabs" no longer stay white */
+        html[data-theme='dark']{
+            --bg:#071023; /* page background */
+            --surface:#0b1f2f; /* card surface (kept dark but slightly bluish for depth) */
+            --surface-2:#123244; /* nav / tile backgrounds */
+            --text:#e8f6ff; /* bright readable text */
+            --muted:#9fb0c7; /* muted descriptions */
+            /* LIGHT YELLOW accents for dark mode (as requested) */
+            --accent1:#ffd60a; /* primary accent (warm yellow) */
+            --accent2:#ffec99; /* softer yellow for gradients/links */
+            --link:var(--accent2);
+            --card-border:rgba(255,255,255,0.06);
+            --card-grad-start:rgba(255,255,255,0.03);
+            --card-grad-end:rgba(255,255,255,0.01);
+        }
 
-	.header  h1{
-		font-size: 40px;
-	}
+        /* warm theme */
+        html[data-theme='warm']{
+            --bg:#fff7ee; /* warm page background (soft cream) */
+            --surface:#fffdf8; /* main card surface (light, distinct from bg) */
+            --surface-2:#fff1e6; /* sidebar / tile surface (slightly darker warm) */
+            --text:#2b2b2b; /* darker text for legibility */
+            --muted:#8b5a3c; /* readable muted tone */
+            --accent1:#ff7a00; /* orange accent */
+            --accent2:#f59e0b; /* amber accent for links */
+            --link:var(--accent2);
+            --card-border:rgba(2,6,23,0.03);
+            --card-grad-start:rgba(255,255,255,0.96);
+            --card-grad-end:rgba(255,250,240,0.96);
+        }
 
-	.header h2 {
-		font-size: 10px;
-	}
-	
-	.text-center{
-		margin: 10px;
-	}
+        /* ------------------ Base styles ------------------ */
+        *{box-sizing:border-box}
+        html,body{height:100%;margin:0}
+        body{
+            font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
+            background:var(--bg);
+            color:var(--text);
+            -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+            line-height:1.45;padding:20px;display:flex;justify-content:center;
+        }
 
-	.content{
-		max-width: 760px;
-		margin: auto;
-		background: #88ebff;
-		padding: 10px;
-	}
+        .wrap{width:100%;max-width:1100px}
+        header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+        .brand{display:flex;gap:12px;align-items:center}
+        .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;color:white;font-weight:800}
+        .title{font-weight:700;font-size:18px}
+        .subtitle{font-size:13px;color:var(--muted)}
 
-    p.round{
-		border: 2px solid #ffb135;
-		border-radius: 12px;
-	}
+        .controls{margin-left:auto;display:flex;gap:8px;align-items:center}
+        .theme-btn{border:0;background:transparent;padding:6px;border-radius:8px;cursor:pointer}
+        .sidebar-toggle{display:none;background:transparent;border:0;padding:8px;border-radius:8px;cursor:pointer}
 
-	</style>
-	<style>img[alt="www.000webhost.com"]{display:none;}</style>
+        main{display:grid;grid-template-columns:var(--sidebar-w) 1fr;gap:16px}
+
+        /* ------------------ SIDEBAR ------------------ */
+        .sidebar{background:var(--surface);padding:14px;border-radius:12px;box-shadow:var(--shadow);position:relative}
+        .sidebar .close-mobile{display:none}
+        .search{width:100%;padding:8px;border-radius:10px;border:1px solid var(--card-border);background:var(--surface-2);color:var(--text)}
+        .nav-list{display:flex;flex-direction:column;gap:8px}
+        .nav-item{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;text-decoration:none;color:inherit;border:1px solid transparent;background:var(--surface-2)}
+        .nav-item span.title{font-weight:600}
+        .nav-item span.desc{font-size:12px;color:var(--muted)}
+        .nav-item:hover{transform:translateX(6px);transition:all .14s ease;border-color:var(--card-border)}
+
+        /* ------------------ CONTENT ------------------ */
+        .card{background:var(--surface);padding:18px;border-radius:12px;box-shadow:var(--shadow)}
+        .hero{display:flex;justify-content:space-between;align-items:center;gap:12px}
+        .hero h1{margin:0;font-size:20px}
+        .muted{color:var(--muted)}
+
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:14px}
+
+        /* link-card now uses theme-aware variables for background, border, and text */
+        .link-card{display:flex;flex-direction:column;padding:12px;border-radius:12px;text-decoration:none;background:linear-gradient(180deg,var(--card-grad-start),var(--card-grad-end));border:1px solid var(--card-border);box-shadow:0 6px 18px rgba(2,6,23,0.04);transition:transform .12s ease,box-shadow .12s ease}
+        .link-card:hover{transform:translateY(-6px);box-shadow:0 14px 30px rgba(2,6,23,0.08)}
+        .link-title{font-weight:700;color:var(--link)}
+        .link-sub{font-size:13px;color:var(--muted);margin-top:6px}
+
+        /* ensure anchor text inside page content adapts */
+        .card a{color:var(--link);text-decoration:none}
+        .card a:hover{text-decoration: none;}
+
+        /* overlay & mobile sidebar */
+        #overlay{display:none;position:fixed;inset:0;background:rgba(3,7,18,0.4);z-index:40;opacity:0;pointer-events:none;transition:opacity .18s ease}
+        #overlay.open{display:block;opacity:1;pointer-events:auto}
+        .sidebar-mobile{display:none;position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);z-index:50;transform:translateX(-110%);transition:transform .18s ease}
+        .sidebar-mobile.open{transform:translateX(0)}
+
+        footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+
+        /* Responsiveness */
+        @media (max-width:880px){
+            main{grid-template-columns:1fr}
+            .sidebar{display:none}
+            .sidebar-toggle{display:inline-block}
+            .controls .theme-btn{display:none}
+            .sidebar-mobile{display:block}
+            .sidebar .close-mobile{display:inline-block}
+            .logo{width:48px;height:48px}
+        }
+
+    
+        /* --- Minimal additions: ensure page content text follows theme and style theme buttons --- */
+        #page-body-inner { color: var(--text); }
+        #page-body-inner a { color: var(--link); }
+        .link-sub { color: var(--muted); }
+
+        .theme-toggle .theme-btn{ background:transparent;border:1px solid transparent;padding:6px;border-radius:8px;cursor:pointer;font-size:16px }
+        .theme-toggle .theme-btn[aria-pressed='true']{ box-shadow: 0 6px 18px rgba(2,6,23,0.08); background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border-color: var(--card-border); }
+        .theme-toggle .theme-btn:focus{ outline:2px solid rgba(0,0,0,0.12); }
+        
+        /* ===== Mobile fix: correct order + make theme icons responsive (replace prior mobile snippet) ===== */
+        @media (max-width:880px){
+            /* keep header wrapping but keep internal control order stable */
+            header { flex-wrap: wrap; align-items: center; }
+
+            /* controls become one full-width row but items keep their natural order */
+            .controls {
+                width: 100%;
+                display: flex;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 8px;
+                flex-wrap: nowrap;            /* DO NOT wrap controls items (prevents re-ordering) */
+                align-items: center;
+                padding-right: 8px;
+            }
+
+            /* explicitly set ordering so it's always: sidebar-toggle, label, theme-toggle */
+            .sidebar-toggle { order: 0; margin-right: 8px; flex: 0 0 auto; }
+            .controls .muted  { order: 1; margin: 0 6px 0 0; flex: 0 0 auto; white-space: nowrap; }
+            .theme-toggle      { order: 2; display: flex; gap: 6px; flex: 0 0 auto; align-items: center; overflow: visible; }
+
+            /* ensure theme buttons are visible, clickable, and don't cause overflow */
+            .theme-toggle .theme-btn,
+            .controls .theme-btn {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                padding: 6px;
+                font-size: 16px;
+                line-height: 1;
+                pointer-events: auto;   /* restore clickability */
+                z-index: 60;            /* keep above overlay if it appears */
+                background: transparent;
+                border: 1px solid transparent;
+            }
+
+            /* small safety: don't allow horizontal scrolling on phones */
+            html, body, .wrap { overflow-x: hidden !important; }
+        }
+
+        /* Make the navigation (☰) icon white in dark mode */
+        html[data-theme='dark'] .sidebar-toggle {
+            color: var(--text) !important;
+            background: transparent !important;
+            border-color: transparent !important;
+            pointer-events: auto !important;
+        }
+
+    </style>
 </head>
+<body data-theme='cool'>
+    <div id='overlay'></div>
+    <div class='wrap'>
+        <header>
+            <div class='brand'>
+                <div class='logo'>STM</div>
+                <div>
+                    <div class='title'>informatics.stmgss</div>
+                    <div class='subtitle'>Interest is your best teacher · Programming & contest training</div>
+                </div>
+            </div>
 
-<body>
-	<div class="content">
-        <center>
-            <p class="round">
-                <font size = "5">
-                    WELCOME! :)<br>
-                    INTEREST IS YOUR BEST TEACHER!!!
-                </font>
-            </p>
-        </center>
-        <br>
-		<div class="text-center">
-			<a href="theory-learning.html" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">理論學習</a>
-			<br>
-			<a href="basics-practice.html" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">基本功訓練</a>
-			<br>
-			<a href="contest-practice.html" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">比賽實踐</a>
-			<br>
-			<a href="practice.html" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">Practice Questions by Topic</a>
-			<br>
-			<a href="https://ngl.link/informatics.stmgss" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">NGL anonymous messaging<strong></strong></a>
-			<br>
-			<a href="https://www.youtube.com/channel/UC1MwEFK9BHvRirZQHIh1IhQ" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">YouTube Channel!!!<strong></strong></a>
-			<br>
-			<a href="tutorial.html" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">Programming Tutorials</a>
-			<br>
-			<a href="https://www.hackerrank.com/stm-question-bank/" style="color:#ffffff" class="btn btn-warning btn-lg btn-block" role="button">STMGSS programming question bank</a>
-		</div>
-	</div>
+            <div class='controls'>
+                <button id='sidebar-toggle' class='sidebar-toggle' aria-label='Open navigation' title='Open navigation'>☰</button>
+                <div class='muted' style='margin-left:8px' aria-hidden='true'>Theme:</div>
+                <div class='theme-toggle' role='tablist' aria-label='Theme selector' style='display:flex;gap:6px;align-items:center;margin-left:8px'>
+                    <button type="button" class="theme-btn" data-theme="cool"  title="Cool" aria-pressed="true"  aria-label="Cool theme">🌊</button>
+                    <button type="button" class="theme-btn" data-theme="dark"  title="Dark" aria-pressed="false" aria-label="Dark theme">🌙</button>
+                    <button type="button" class="theme-btn" data-theme="warm"  title="Warm" aria-pressed="false" aria-label="Warm theme">☀️</button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+        <!-- Desktop sidebar -->
+        <aside class='sidebar card' aria-label='Site navigation' id='sidebar-desktop'>
+            <button class='close-mobile' aria-hidden='true' style='float:right;display:none'>×</button>
+            <!-- <input id='search' class='search' placeholder='Search pages (type & Enter)' /> -->
+            <nav class='nav-list' id='nav-list'></nav>
+        </aside>
+
+        <!-- Mobile sidebar (off-canvas) -->
+        <aside class='sidebar-mobile card' id='sidebar-mobile' aria-hidden='true'>
+            <div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px'>
+                <strong>Navigation</strong>
+                <button id='mobile-close' aria-label='Close navigation'>✕</button>
+            </div>
+            <!-- <input id='search-mobile' class='search' placeholder='Search pages (type & Enter)' /> -->
+            <nav class='nav-list' id='nav-list-mobile'></nav>
+        </aside>
+
+        <section id='content-area'>
+            <div class='card' id='content-card'>
+                <div class='hero'>
+                    <div>
+                    <h1 id='page-title'>Welcome</h1>
+                    <div id='page-sub' class='muted'>Choose a section from the navigation. On mobile use the ☰ button.</div>
+                    </div>
+                    <div id='page-actions'></div>
+                </div>
+
+                <div id='page-body'>
+                    <div id='page-body-inner'>
+                    <p style='margin-top:12px'>This improved layout groups related pages, displays link lists as cards, and responds to small screens with a collapsible navigation drawer.</p>
+                    </div>
+                    <div id='page-grid' class='grid' role='list'></div>
+                </div>
+            </div>
+            <div class='pager' id='pager'></div>
+        </section>
+        </main>
+    </div>
+
+    <script>
+        // ======== PAGES manifest (same as before) ========
+        const theory_practice = {
+            slug:'theory-learning',
+            title:'理論學習',
+            description:'Theory Learning',
+            type:'internal',
+            contentType:'children',
+            children:[
+                {
+                    slug:'cses.fi',
+                    title:'Competitive Programmer\'s Handbook',
+                    description:'To start, read chapter 1, 3, 6, and 21',
+                    type:'external',
+                    url:'https://cses.fi/book/book.pdf'
+                },
+            ],
+        };
+
+        const basic_practice = {
+            slug:'basics-practice',
+            title:'基本功訓練平台',
+            description:'Fundamental exercises',
+            type:'internal',
+            contentType:'children',
+            children:[
+                {
+                    slug:'beecrowd',
+                    title:'beecrowd',
+                    description:'Practice basic programming',
+                    type:'external',
+                    url:'https://beecrowd.com'
+                },
+                {
+                    slug:'cses.fi',
+                    title:'cses.fi',
+                    description:'Practice standard questions from Competitive Programmer\'s Handbook',
+                    type:'external',
+                    url:'https://cses.fi/problemset'
+                },
+            ],
+        };
+
+        const contest_practice = {
+            slug:'contest-practice',
+            title:'比賽實踐平台',
+            description:'Online Contest Platforms',
+            type:'internal',
+            contentType:'html',
+            contentType:'children',
+            children:[
+                {
+                    slug:'Codeforces',
+                    title:'Codeforces',
+                    description:'Largest platform for contests!',
+                    type:'external',
+                    url:'https://codeforces.com'
+                },
+                {
+                    slug:'Codechef',
+                    title:'Codechef',
+                    description:'Another well-known platform, but with better interface (XD)',
+                    type:'external',
+                    url:'https://www.codechef.com'
+                },
+            ],
+        };
+
+        const by_topic = {
+            slug:'practice',
+            title:'Practice Questions by Topic',
+            description:'Topic-indexed practice',
+            type:'internal',
+            contentType:'children',
+            children:[
+                {
+                    slug:'practice-1',
+                    title:'1. Intro to C++',
+                    type:'internal',
+                    contentType:'children',
+                    children:[
+                        {
+                            slug:'practice-1',
+                            title:'1. Hello World!',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1000'
+                        },
+                        {
+                            slug:'practice-1',
+                            title:'2. Simple Product',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1004'
+                        },
+                        {
+                            slug:'practice-1',
+                            title:'3. Difference',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1007'
+                        },
+                        {
+                            slug:'practice-1',
+                            title:'4. Distance',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1016'
+                        },
+                        {
+                            slug:'practice-1',
+                            title:'5. Distance Between Two Points',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1015'
+                        },
+                    ],
+                },
+                {
+                    slug:'practice-2',
+                    title:'2. If Statements',
+                    type:'internal',
+                    contentType:'children',
+                    children:[
+                        {
+                            slug:'practice-2',
+                            title:'1. Selection Test 1',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1035'
+                        },
+                        {
+                            slug:'practice-2',
+                            title:'2. Triangle Types',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1045'
+                        },
+                        {
+                            slug:'practice-2',
+                            title:'3. Greatest',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1013'
+                        },
+                        {
+                            slug:'practice-2',
+                            title:'4. Positive Numbers',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1060'
+                        },
+                        {
+                            slug:'practice-2',
+                            title:'5. Coordinates of a Point',
+                            type:'external',
+                            url:'https://judge.beecrowd.com/en/problems/view/1041'
+                        },
+                    ],
+                }
+            ]
+        };
+
+        const useful_links = {
+            slug:'useful',
+            title:'有用連結',
+            description: 'Useful Links',
+            type:'internal',
+            contentType:'children',
+            children:[
+                {
+                    slug:'useful',
+                    title:'HKOI - Annual Programming Contest',
+                    type:'external',
+                    url:'https://hkoi.org/en'
+                },
+                {
+                    slug:'useful',
+                    title:'How to Set Up Dev-C++',
+                    type:'external',
+                    url:'https://www.youtube.com/watch?v=NTkwZsUasXU&t'
+                },
+                {
+                    slug:'useful',
+                    title:'Replit',
+                    type:'external',
+                    url:'https://replit.com'
+                },
+                {
+                    slug:'useful',
+                    title:'Online C++ Compiler',
+                    type:'external',
+                    url:'https://www.onlinegdb.com/online_c++_compiler'
+                },
+                {
+                    slug:'useful',
+                    title:'Practice Coding at Beecrowd!',
+                    type:'external',
+                    url:'https://www.beecrowd.com'
+                },
+                {
+                    slug:'useful',
+                    title:'STMGSS programming question bank',
+                    type:'external',
+                    url:'https://www.hackerrank.com/stm-question-bank'
+                },
+            ],
+        };
+
+        const question_bank = {
+            slug:'stmgss_question_bank',
+            title:'STMGSS programming question bank',
+            description:'Self-made question bank! ;P',
+            type:'external',
+            url:'https://www.hackerrank.com/stm-question-bank'
+        };
+
+        const ngl = {
+            slug:'ngl',
+            title:'NGL anonymous messaging',
+            description:'Anonymous messages',
+            type:'external',
+            url:'https://ngl.link/informatics.stmgss'
+        };
+
+        const home = {
+            slug:'home',
+            title:'Home',
+            description:'Welcome',
+            type:'internal',
+            contentType:'html', 
+            content:`
+            <h2>WELCOME! 🙂</h2>
+            <p><strong>Interest is your best teacher! 歡迎加入南官競技編程!</strong></p>
+            <h4>簡單嚟講,競技編程啫係喺限時內用程式去解決一啲算法或者係邏輯相關嘅問題,好考大家嘅邏輯同編程能力!</h4>
+            <h4>而 HKOI (香港電腦奧林匹克競賽) 就係全港中學最大型嘅競技編程比賽,你就當係中學電腦學界啦!如果考得好仲可以參加港隊選拔賽,成為港隊,去世界各地比賽!</h4>
+            `,
+            children:[
+                theory_practice,
+                basic_practice,
+                contest_practice,
+                useful_links,
+                by_topic,
+                question_bank,
+                ngl,
+            ]
+        }
+
+        // const link_template = {
+        //     slug:'basics-practice',
+        //     title:'基本功訓練平台',
+        //     description:'Fundamental exercises',
+        //     type:'internal',
+        //     contentType:'links',
+        //     content:[
+        //         {title:'Array practice', url:'https://www.hackerrank.com/domains/arrays', desc:'Array problems'},
+        //         {title:'Loops & conditions', url:'https://www.learncpp.com/', desc:'Tutorials and exercises'}
+        //     ],
+        // };
+
+        const PAGES = [
+            home,
+            theory_practice,
+            basic_practice,
+            contest_practice,
+            useful_links,
+            by_topic,
+            question_bank,
+            ngl,
+            { slug:'youtube', title:'YouTube Channel', description:'Channel & playlists', type:'external', url:'https://www.youtube.com/channel/UC1MwEFK9BHvRirZQHIh1IhQ' },
+            { slug:'tutorial', title:'Programming Tutorials', description:'Intro C++ & basics', type:'internal', contentType:'children', children:[{ slug:'tutorial-cpp', title:'Intro to C++', type:'internal', contentType:'links', content:[{title:'YouTube - Intro to C++', url:'https://www.youtube.com/watch?v=GDDL1QLcPus', desc:''}] },{ slug:'tutorial-if', title:'If statements', type:'internal', contentType:'links', content:[{title:'YouTube - If Statements', url:'https://www.youtube.com/watch?v=dI-niPP9kyc', desc:''}] }]},     
+        ];
+
+        // ======== Rendering helpers ========
+        const navList = document.getElementById('nav-list');
+        const navListMobile = document.getElementById('nav-list-mobile');
+        const pageTitle = document.getElementById('page-title');
+        const pageSub = document.getElementById('page-sub');
+        const pageBody = document.getElementById('page-body');
+
+        // simple and safe HTML escaper using DOM
+        function esc(s){
+            const d = document.createElement('div');
+            d.appendChild(document.createTextNode(String(s||'')));
+            return d.innerHTML;
+        }
+
+        function buildNav(container, filter){
+            container.innerHTML='';
+            const pages = PAGES.slice().filter(p=> !filter || p.title.toLowerCase().includes(filter.toLowerCase()));
+            pages.forEach(p=>{
+                const a = document.createElement('a');
+                a.className = 'nav-item';
+                a.href = '#'+p.slug;
+                a.innerHTML = `<div style='flex:1'><span class='title'>${esc(p.title)}</span><div class='desc'>${esc(p.description||'')}</div></div>`;
+                container.appendChild(a);
+            });
+        }
+
+        function findPage(slug, list=PAGES){
+            for(const p of list){ if(p.slug===slug) return p; if(p.children){ const r=findPage(slug,p.children); if(r) return r; } }
+            return null;
+        }
+
+        function createLinkCard(title, sub, href){
+            const a = document.createElement('a');
+            a.className='link-card';
+            a.href = href;
+            a.role = 'listitem';
+            a.innerHTML = `<div class='link-title'>${esc(title)}</div><div class='link-sub'>${esc(sub)}</div>`;
+            return a;
+        }
+
+        function createExternalCard(title, sub, url){
+            const a = document.createElement('a');
+            a.className='link-card';
+            a.href = url;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.innerHTML = `<div class='link-title'>${esc(title)}</div><div class='link-sub'>${esc(sub)}</div>`;
+            return a;
+        }
+
+        function renderPageBySlug(slug){
+            const page = findPage(slug) || PAGES[0];
+
+            // External pages: open and show friendly message
+            if(page.type === 'external'){
+                window.open(page.url, '_blank');
+                pageTitle.textContent = page.title;
+                pageSub.textContent = 'External link opened in new tab';
+                if(!document.getElementById('page-body-inner')){
+                    pageBody.innerHTML = '<div id="page-body-inner"></div><div id="page-grid" class="grid" role="list"></div>';
+                }
+                document.getElementById('page-body-inner').innerHTML = `<p class="muted">Opened <a href="${page.url}" target="_blank">${esc(page.url)}</a>.</p>`;
+                document.getElementById('page-grid').innerHTML = '';
+                closeMobileSidebarIfOpen();
+            }
+
+            // Common header
+            pageTitle.textContent = page.title;
+            pageSub.textContent = '';
+
+            // Ensure containers exist
+            if(!document.getElementById('page-body-inner')){
+                pageBody.innerHTML = '<div id="page-body-inner"></div><div id="page-grid" class="grid" role="list"></div>';
+            }
+            const pageInner = document.getElementById('page-body-inner');
+            const pageGrid = document.getElementById('page-grid');
+            pageGrid.innerHTML = '';
+
+            // If page explicitly declared as children-only: show its children (same as before)
+            if(page.contentType === 'children' && Array.isArray(page.children)){
+                pageInner.innerHTML = `<p class="muted">${esc(page.description || '')}</p>`;
+                page.children.forEach(child => {
+                    if (child.type === 'external' && child.url) {
+                        // create a real external anchor (no hash) — opens in new tab and DOES NOT change location.hash
+                        const ext = createExternalCard(child.title, child.description || '', child.url);
+                        pageGrid.appendChild(ext);
+                    } else {
+                        // internal child: link to its slug (hash) — same as before
+                        const el = createLinkCard(child.title, child.description || '', '#' + child.slug);
+                        pageGrid.appendChild(el);
+                    }
+                });
+                closeMobileSidebarIfOpen();
+                return;
+            }
+
+            // If page is a list of links
+            if(page.contentType === 'links' && Array.isArray(page.content)){
+                pageInner.innerHTML = `<p class="muted">${esc(page.description || '')}</p>`;
+                page.content.forEach(link=>{
+                const el = createExternalCard(link.title, link.desc||'', link.url);
+                    pageGrid.appendChild(el);
+                });
+                closeMobileSidebarIfOpen();
+                return;
+            }
+
+            // DEFAULT: HTML content — render the HTML first...
+            pageInner.innerHTML = page.content || '<p>No content yet.</p>';
+
+            // ...then, if the page has children, append them as link-cards below the HTML
+            // if(Array.isArray(page.children) && page.children.length){
+            //     // optional small separator heading (styled by existing .muted)
+            //     const sep = document.createElement('div');
+            //     sep.className = 'muted';
+            //     sep.style.marginTop = '12px';
+            //     sep.textContent = '';
+            //     pageInner.appendChild(sep);
+
+            //     page.children.forEach(child=>{
+            //         const el = createLinkCard(child.title, child.description || '', '#'+child.slug);
+            //         pageGrid.appendChild(el);
+
+            //         // if child has its own children, you may optionally show small badges (keeps previous behavior)
+            //         if(Array.isArray(child.children) && child.children.length){
+            //             const badges = document.createElement('div');
+            //             badges.style.marginTop = '8px';
+            //             badges.style.display = 'flex';
+            //             badges.style.gap = '6px';
+            //             child.children.forEach(c=>{
+            //             const b = document.createElement('a');
+            //             b.href = '#'+(c.slug||'');
+            //             b.textContent = c.title || c.slug;
+            //             b.style.fontSize = '12px';
+            //             b.style.padding = '6px 8px';
+            //             b.style.borderRadius = '8px';
+            //             b.style.background = 'transparent';
+            //             b.style.border = '1px solid rgba(0,0,0,0.06)';
+            //             b.style.textDecoration = 'none';
+            //             badges.appendChild(b);
+            //             });
+            //             pageGrid.appendChild(badges);
+            //         }
+            //     });
+            // }
+
+            // (this prevents grandchildren from being expanded under parent cards)
+            if (Array.isArray(page.children) && page.children.length) {
+                // optional small separator heading (styled by existing .muted)
+                const sep = document.createElement('div');
+                sep.className = 'muted';
+                sep.style.marginTop = '12px';
+                sep.textContent = '';
+                pageInner.appendChild(sep);
+
+                // append a single card per child (do NOT expand grand-children here)
+                page.children.forEach(child => {
+                    if (child.type === 'external' && child.url) {
+                        // create a real external anchor (no hash) — opens in new tab and DOES NOT change location.hash
+                        const ext = createExternalCard(child.title, child.description || '', child.url);
+                        pageGrid.appendChild(ext);
+                    } else {
+                        // internal child: link to its slug (hash) — same as before
+                        const el = createLinkCard(child.title, child.description || '', '#' + child.slug);
+                        pageGrid.appendChild(el);
+                    }
+                });
+            }
+
+            closeMobileSidebarIfOpen();
+        }
+
+
+        // initialize navs
+        buildNav(navList);
+        buildNav(navListMobile);
+
+        // HASH ROUTING
+        function handleHash(){ const slug = (location.hash||'#home').slice(1) || 'home'; renderPageBySlug(slug); }
+        window.addEventListener('hashchange', handleHash);
+        if(!location.hash) location.hash = '#home'; else handleHash();
+
+        // MOBILE SIDEBAR TOGGLES
+        const sidebarToggle = document.getElementById('sidebar-toggle');
+        const sidebarMobile = document.getElementById('sidebar-mobile');
+        const overlay = document.getElementById('overlay');
+        const mobileClose = document.getElementById('mobile-close');
+
+        function openMobileSidebar(){ sidebarMobile.classList.add('open'); overlay.classList.add('open'); sidebarMobile.setAttribute('aria-hidden','false'); sidebarToggle.setAttribute('aria-expanded','true'); }
+        function closeMobileSidebar(){ sidebarMobile.classList.remove('open'); overlay.classList.remove('open'); sidebarMobile.setAttribute('aria-hidden','true'); sidebarToggle.setAttribute('aria-expanded','false'); }
+        function closeMobileSidebarIfOpen(){ if(window.innerWidth <= 880 && sidebarMobile.classList.contains('open')) closeMobileSidebar(); }
+
+        sidebarToggle.addEventListener('click', ()=>{ if(sidebarMobile.classList.contains('open')) closeMobileSidebar(); else openMobileSidebar(); });
+        mobileClose.addEventListener('click', closeMobileSidebar);
+        overlay.addEventListener('click', closeMobileSidebar);
+
+        // close sidebar when a nav link is clicked (mobile)
+        function wireNavClicks(container){ container.addEventListener('click', (e)=>{ const a = e.target.closest('a'); if(a && a.hash){ // let hashchange handle rendering
+            // short timeout to allow hash to change UI then close
+            setTimeout(()=> closeMobileSidebarIfOpen(), 50);
+        }
+        }); }
+        wireNavClicks(navList);
+        wireNavClicks(navListMobile);
+
+        // search inputs
+        // attach search handlers only when inputs exist (prevents script errors if inputs are commented out)
+        const _search = document.getElementById('search');
+        if (_search) {
+            _search.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                buildNav(navList, e.target.value);
+                buildNav(navListMobile, e.target.value);
+                }
+            });
+        }
+        const _searchMobile = document.getElementById('search-mobile');
+        if (_searchMobile) {
+            _searchMobile.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                buildNav(navListMobile, e.target.value);
+                buildNav(navList, e.target.value);
+                }
+            });
+        }
+
+        // theme switcher — delegated click handler (robust)
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest && e.target.closest('.theme-btn');
+            if (!btn) return;
+            const t = btn.getAttribute('data-theme');
+            if (!t) return;
+            document.documentElement.setAttribute('data-theme', t);
+            document.querySelectorAll('.theme-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+            btn.setAttribute('aria-pressed', 'true');
+        });
+
+        // initialize pressed state according to current theme
+        (function () {
+            const cur = document.documentElement.getAttribute('data-theme') || 'cool';
+            const el = document.querySelector('.theme-btn[data-theme="' + cur + '"]');
+            if (el) {
+                document.querySelectorAll('.theme-btn').forEach(b => b.setAttribute('aria-pressed', 'false'));
+                el.setAttribute('aria-pressed', 'true');
+            }
+        })();
+
+        // small helpers
+        window.SiteAdmin = {
+            addPage(obj, parentSlug){ if(parentSlug){ const parent = findPage(parentSlug); if(parent){ parent.children = parent.children || []; parent.children.push(obj); } else PAGES.push(obj); } else PAGES.push(obj); buildNav(navList); buildNav(navListMobile); alert('Added page in-memory — edit index.html to persist permanently.'); },
+            listPages(){ console.table((function flatten(list){ const out=[]; list.forEach(p=>{ out.push({slug:p.slug,title:p.title,type:p.type||'internal'}); if(p.children) out.push(...flatten(p.children)); }); return out; })(PAGES)); }
+        };
+
+        // close mobile sidebar on resize to large screens
+        window.addEventListener('resize', ()=>{ if(window.innerWidth>880){ closeMobileSidebar(); } });
+
+    </script>
 </body>
+</html>
