@@ -544,8 +544,23 @@
             pages.forEach(p=>{
                 const a = document.createElement('a');
                 a.className = 'nav-item';
-                a.href = '#'+p.slug;
+
+                if (p.type === 'internal') {
+                    // internal: use hash navigation (stays in-app)
+                    a.href = '#'+p.slug;
+                } else {
+                    // external: open in new tab and avoid leaking window.opener
+                    a.href = p.url;
+                    a.target = '_blank';
+                    a.rel = 'noopener noreferrer';
+                }
+
                 a.innerHTML = `<div style='flex:1'><span class='title'>${esc(p.title)}</span><div class='desc'>${esc(p.description||'')}</div></div>`;
+
+                // Close mobile sidebar when a nav link is clicked (keeps UX smooth on phones)
+                a.addEventListener('click', () => {
+                if (window.innerWidth <= 880) closeMobileSidebarIfOpen();
+                });
                 container.appendChild(a);
             });
         }
